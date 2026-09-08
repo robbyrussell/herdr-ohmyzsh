@@ -24,16 +24,19 @@ if (( $+commands[herdr] )) && [[ -n "$ZSH_CACHE_DIR" ]]; then
   fi
 
   # Regenerate in the background so a herdr upgrade is picked up next shell.
+  # The temp name carries $RANDOM as well as $$ so two jobs from the same
+  # shell (the plugin sourced twice) cannot collide on it, and the job is
+  # fully silent so nothing lands on the terminal after the prompt.
   zmodload -F zsh/files b:zf_mv b:zf_mkdir b:zf_rm
   () {
     zf_mkdir -p "$ZSH_CACHE_DIR/completions"
-    local tmp="$ZSH_CACHE_DIR/completions/_herdr.$$"
+    local tmp="$ZSH_CACHE_DIR/completions/_herdr.$$.$RANDOM"
     if herdr completion zsh >| "$tmp" 2>/dev/null && [[ -s "$tmp" ]]; then
       zf_mv -f -- "$tmp" "$ZSH_CACHE_DIR/completions/_herdr"
     else
       zf_rm -f -- "$tmp"
     fi
-  } &|
+  } >/dev/null 2>&1 &|
 fi
 
 # --- Everything below needs a live Herdr pane --------------------------------
