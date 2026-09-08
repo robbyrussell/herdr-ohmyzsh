@@ -15,6 +15,15 @@ It is safe to leave in your plugins list on every machine. Outside a Herdr
 pane it only installs completions for the `herdr` command. Removing it is two
 commands, listed at the bottom.
 
+There is a second half to this. I have a `herdr` plugin waiting to be merged
+into Oh My Zsh itself, [ohmyzsh/ohmyzsh#14079](https://github.com/ohmyzsh/ohmyzsh/pull/14079).
+That one is the plain-terminal side: completions, `hrdr` aliases for the daily
+commands, a session picker, and a prompt segment showing the current pane.
+This repository is the Herdr-side experiment, the pieces that only make sense
+inside a pane. Both are named `herdr` for now, and Oh My Zsh loads a custom
+plugin ahead of an in-tree one with the same name, so once that PR lands I
+will sort out how the two fit together.
+
 ## What it does
 
 **Tells you when the slow thing finished.** Any command that runs longer than
