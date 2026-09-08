@@ -49,6 +49,41 @@ agent.
 | `hworktree BRANCH [BASE]` | New git worktree, opened as a workspace |
 | `hreload [--dry-run]` | Reload Oh My Zsh in every idle pane |
 
+## When it helps
+
+A few moments from my own days where this earns its place.
+
+- **The test suite takes four minutes.** Run `bin/rails test`, switch to the
+  tab where an agent is working, and forget about it. The sidebar shows the
+  test run as working next to the agent, and a toast arrives when it finishes.
+  A failure uses the attention sound, so you notice without looking.
+
+- **You just added a plugin to `.zshrc`.** Instead of typing `omz reload` in
+  each pane, press the keybinding once. Every idle shell reloads. The pane
+  running a migration and the two running agents are untouched.
+
+- **You want a second opinion on the diff.** From the shell you are in,
+  `hagent reviewer` splits right, starts Claude there with that name, and
+  leaves your cursor where it was. Later, from any pane:
+  `herdr agent prompt reviewer "Review the current diff"`.
+
+- **A new ticket needs a clean checkout.** `hworktree feature/login main`
+  creates the worktree and opens it as its own workspace, so the agent for
+  that ticket never trips over the one on the previous branch.
+
+- **You need logs next to what you are doing.** `hsplit down tail -f
+  log/development.log` puts them under the current pane in the same
+  directory. `htab server` gives a long-running process its own tab.
+
+- **A slow install or build is running in another tab.** `docker compose
+  build`, `bundle install`, a deploy script. The sidebar tells you whether it
+  is still going without switching to check, and tells you the moment it is
+  not.
+
+- **An agent should wait for your build.** Because the build is reported like
+  an agent, another pane can block on it:
+  `herdr agent wait make --until done` and then continue with the next step.
+
 ## What it will not do
 
 - Report agents. Herdr already tracks Claude, Codex, Gemini and the rest, and
