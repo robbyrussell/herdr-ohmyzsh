@@ -1,5 +1,8 @@
 # herdr-ohmyzsh
 
+[![CI](https://github.com/robbyrussell/herdr-ohmyzsh/actions/workflows/ci.yml/badge.svg)](https://github.com/robbyrussell/herdr-ohmyzsh/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/robbyrussell/herdr-ohmyzsh)](LICENSE)
+
 An experiment. I created [Oh My Zsh](https://ohmyz.sh), and I am still wrapping
 my head around [Herdr](https://herdr.dev). I have twenty years of shortcut
 habits in my zsh terminals, and I wanted them to carry over into a workspace
