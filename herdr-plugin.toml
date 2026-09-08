@@ -2,7 +2,7 @@ id = "ohmyzsh.shell"
 name = "Oh My Zsh"
 version = "0.1.0"
 min_herdr_version = "0.8.0"
-description = "Oh My Zsh integration: slow commands in the sidebar, done notifications, shell helpers, and one key to reload Oh My Zsh in every idle pane"
+description = "Know when the slow command finished, reload Oh My Zsh in every idle pane with one key, and short names for splits, tabs, agents and worktrees"
 platforms = ["macos", "linux"]
 
 # Links this checkout into $ZSH_CUSTOM/plugins/herdr so `plugins=(... herdr)`
