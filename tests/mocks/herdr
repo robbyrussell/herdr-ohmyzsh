@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Fake `herdr` CLI for the test suite.
+#
+# Every invocation is appended, space-joined, to $HERDR_MOCK_LOG so tests can
+# assert exactly which calls the plugin made. Read-only queries are answered
+# from fixture files in $HERDR_MOCK_DIR; a missing fixture yields a valid but
+# empty response, the same way a real herdr degrades.
+#
+#   panes.json                pane list
+#   pane_<id>.json            pane get <id>          (":" in the id becomes "-")
+#   procinfo_<id>.json        pane process-info --pane <id>
+#   current.json              pane current --current
+#   split.json                pane split ...
+#
+# Set HERDR_MOCK_FAIL=1 to make every mutating call exit non-zero.
+
+dir="${HERDR_MOCK_DIR:?HERDR_MOCK_DIR unset}"
+log="${HERDR_MOCK_LOG:?HERDR_MOCK_LOG unset}"
+printf '%s\n' "$*" >>"$log"
+
+serve() { cat "$dir/$1" 2>/dev/null || printf '%s\n' "$2"; }
+mutate() { [ "${HERDR_MOCK_FAIL:-0}" = 1 ] && exit 1; printf '{"result":{}}\n'; }
+
+case "${1:-} ${2:-}" in
+  "--version "|"-V ")   printf 'herdr %s\n' "${HERDR_MOCK_VERSION:-0.8.0}" ;;
+  "completion zsh")     printf '#compdef herdr\n_herdr() { _arguments "*:arg" }\n' ;;
+  "pane list")          serve panes.json '{"result":{"panes":[]}}' ;;
+  "pane get")           serve "pane_${3//:/-}.json" '{"result":{"pane":{}}}' ;;
+  "pane current")       serve current.json '{"result":{"pane":{"focused":false}}}' ;;
+  "pane split")         serve split.json '{"result":{"pane":{"pane_id":"w1:p9"}}}' ;;
+  "pane process-info")
+    shift 2; id=""
+    while [ $# -gt 0 ]; do
+      case "$1" in --pane) id="$2"; shift 2 ;; *) shift ;; esac
+    done
+    serve "procinfo_${id//:/-}.json" '{"result":{"process_info":{}}}' ;;
+  "pane run"|"pane report-agent"|"pane release-agent"|"notification show"|"agent start"|"tab create"|"worktree create")
+    mutate ;;
+  *) printf '{"result":{}}\n' ;;
+esac

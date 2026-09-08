@@ -1,0 +1,68 @@
+#!/usr/bin/env zsh
+# Reload Oh My Zsh in every pane that is sitting at an idle zsh prompt.
+#
+# A pane qualifies when Herdr reports no agent in it and the only foreground
+# process is the pane's own shell, and that shell is zsh. Panes running a
+# command, an editor, or a coding agent are left alone.
+#
+#   zsh bin/reload-all [--dry-run]
+emulate -L zsh
+
+bin="${HERDR_BIN_PATH:-herdr}"
+dry=0
+[[ "$1" == --dry-run ]] && dry=1
+
+if ! command -v "$bin" >/dev/null 2>&1; then
+  print -u2 "reload-all: herdr binary not found (set HERDR_BIN_PATH or add herdr to PATH)"
+  exit 1
+fi
+
+json="$("$bin" pane list)" || { print -u2 "reload-all: 'herdr pane list' failed"; exit 1 }
+
+typeset -a ids reloaded skipped
+rest="$json"
+while [[ "$rest" =~ '"pane_id":"([^"]+)"' ]]; do
+  ids+=("$match[1]")
+  rest="${rest[MEND+1,-1]}"
+done
+
+for id in $ids; do
+  info="$("$bin" pane get "$id" 2>/dev/null)" || { skipped+=("$id (unreadable)"); continue }
+  if [[ "$info" == *'"agent":"'* ]]; then
+    skipped+=("$id (agent running)")
+    continue
+  fi
+
+  proc="$("$bin" pane process-info --pane "$id" 2>/dev/null)" || { skipped+=("$id (unreadable)"); continue }
+  shell_pid=
+  [[ "$proc" =~ '"shell_pid":([0-9]+)' ]] && shell_pid="$match[1]"
+
+  # Count "pid": entries; an idle pane lists exactly one, the shell itself.
+  US=$'\x1f'
+  marked="${proc//\"pid\":/$US}"
+  count="${#${marked//[^$US]/}}"
+  if [[ -z "$shell_pid" || "$count" != 1 || "$proc" != *"\"pid\":$shell_pid"* ]]; then
+    skipped+=("$id (busy)")
+    continue
+  fi
+  if [[ "$proc" != *'"name":"zsh"'* && "$proc" != *'"argv0":"zsh"'* ]]; then
+    skipped+=("$id (not zsh)")
+    continue
+  fi
+
+  if (( dry )); then
+    reloaded+=("$id (dry run)")
+  else
+    "$bin" pane run "$id" "omz reload" >/dev/null 2>&1 && reloaded+=("$id") || skipped+=("$id (send failed)")
+  fi
+done
+
+for id in $reloaded; do print "reloaded $id"; done
+for id in $skipped;  do print "skipped  $id"; done
+
+n=${#reloaded}
+body="$n shell$([[ $n == 1 ]] || print -n s) reloaded, ${#skipped} skipped"
+(( dry )) && body="dry run: $body"
+print "$body"
+(( dry )) || "$bin" notification show "Oh My Zsh reloaded" --body "$body" --sound none >/dev/null 2>&1
+exit 0

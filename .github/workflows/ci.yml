@@ -1,0 +1,34 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        # macOS ships zsh; Ubuntu needs it installed.
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install zsh (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y zsh
+
+      - name: Versions
+        run: |
+          zsh --version
+          bash --version | head -1
+
+      - name: Syntax check
+        run: |
+          zsh -n herdr.plugin.zsh bin/install-zsh-plugin bin/reload-all tests/lib.zsh tests/run.zsh tests/test_*.zsh
+          bash -n tests/mocks/herdr
+
+      - name: Run tests
+        run: zsh tests/run.zsh

@@ -1,0 +1,41 @@
+#!/usr/bin/env zsh
+# Link this repository into Oh My Zsh's custom plugins directory as "herdr".
+#
+# Runs as the build step of `herdr plugin install`, as the "install" action,
+# or by hand:  zsh bin/install-zsh-plugin
+emulate -L zsh
+
+root="${HERDR_PLUGIN_ROOT:-${0:A:h:h}}"
+zsh_dir="${ZSH:-$HOME/.oh-my-zsh}"
+custom="${ZSH_CUSTOM:-$zsh_dir/custom}"
+target="$custom/plugins/herdr"
+zshrc="${ZDOTDIR:-$HOME}/.zshrc"
+
+if [[ ! -f "$zsh_dir/oh-my-zsh.sh" ]]; then
+  print "herdr-ohmyzsh: Oh My Zsh was not found at $zsh_dir."
+  print "Install it from https://ohmyz.sh and then run:  zsh $root/bin/install-zsh-plugin"
+  exit 0
+fi
+
+mkdir -p "$custom/plugins" || exit 1
+
+if [[ -L "$target" ]]; then
+  rm -f "$target" && ln -s "$root" "$target" || exit 1
+  print "herdr-ohmyzsh: updated link $target -> $root"
+elif [[ -e "$target" ]]; then
+  print "herdr-ohmyzsh: $target already exists and is not a symlink, so it was left alone."
+  print "Remove it and rerun this script to use the copy at $root."
+  exit 0
+else
+  ln -s "$root" "$target" || exit 1
+  print "herdr-ohmyzsh: linked $target -> $root"
+fi
+
+# Look inside plugins=( ... ), which may span several lines.
+if [[ -r "$zshrc" ]] && tr '\n' ' ' < "$zshrc" | grep -Eo 'plugins=\([^)]*\)' | grep -qw herdr; then
+  print "herdr-ohmyzsh: 'herdr' is already in the plugins list of $zshrc."
+else
+  print "herdr-ohmyzsh: add 'herdr' to the plugins list in $zshrc, for example:"
+  print "    plugins=(git herdr)"
+fi
+print "herdr-ohmyzsh: open a new shell, or run 'omz reload', to activate it."

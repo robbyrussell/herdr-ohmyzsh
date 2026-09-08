@@ -1,0 +1,23 @@
+id = "ohmyzsh.shell"
+name = "Oh My Zsh"
+version = "0.1.0"
+min_herdr_version = "0.8.0"
+description = "Oh My Zsh integration: slow commands in the sidebar, done notifications, shell helpers, and one key to reload Oh My Zsh in every idle pane"
+platforms = ["macos", "linux"]
+
+# Links this checkout into $ZSH_CUSTOM/plugins/herdr so `plugins=(... herdr)`
+# picks it up. Prints instructions instead of failing when Oh My Zsh is absent.
+[[build]]
+command = ["zsh", "bin/install-zsh-plugin"]
+
+[[actions]]
+id = "reload-all"
+title = "Reload Oh My Zsh in idle panes"
+contexts = ["workspace"]
+command = ["zsh", "bin/reload-all"]
+
+[[actions]]
+id = "install"
+title = "Link the zsh plugin into Oh My Zsh"
+contexts = ["workspace"]
+command = ["zsh", "bin/install-zsh-plugin"]
