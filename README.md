@@ -49,40 +49,32 @@ agent.
 | `hworktree BRANCH [BASE]` | New git worktree, opened as a workspace |
 | `hreload [--dry-run]` | Reload Oh My Zsh in every idle pane |
 
-## When it helps
+## The muscle memory it saves
 
-A few moments from my own days where this earns its place.
+Herdr can do all of the pane, tab and worktree work already, from the UI or
+the CLI. I wander between projects from a zsh prompt all day, and I did not
+want to remember the argv. This is what I type versus what I would otherwise
+have to remember.
 
-- **The test suite takes four minutes.** Run `bin/rails test`, switch to the
-  tab where an agent is working, and forget about it. The sidebar shows the
-  test run as working next to the agent, and a toast arrives when it finishes.
-  A failure uses the attention sound, so you notice without looking.
+| I type | Without the plugin I would need |
+|---|---|
+| `hsplit` | `herdr pane split --current --direction right --cwd "$PWD" --focus` |
+| `hsplit down tail -f log/development.log` | The split above with `--direction down`, then read the new pane id out of the JSON, then `herdr pane run w1:p9 tail -f log/development.log` |
+| `htab server` | `herdr tab create --cwd "$PWD" --focus --label server` |
+| `hagent reviewer` | `herdr pane split --current --direction right --cwd "$PWD" --no-focus`, copy the pane id from the JSON, then `herdr agent start reviewer --kind claude --pane w1:p9` |
+| `hworktree feature/login main` | `herdr worktree create --branch feature/login --base main --cwd "$PWD" --focus` |
+| `hreload` | `herdr pane list`, then for each pane `herdr pane get` and `herdr pane process-info` to find the idle zsh ones, then `herdr pane run <id> "omz reload"` on each |
+| `herdr pane sp<tab>` | `herdr completion zsh > "$ZSH_CACHE_DIR/completions/_herdr"`, and remembering to do it again after every herdr upgrade |
+| Nothing. The toast finds me. | Switching back to the pane to see whether `bin/rails test` is done, or `herdr pane wait-output <id> --match "runs,"` from somewhere else |
 
-- **You just added a plugin to `.zshrc`.** Instead of typing `omz reload` in
-  each pane, press the keybinding once. Every idle shell reloads. The pane
-  running a migration and the two running agents are untouched.
+Two of these are not shortcuts, they are things Herdr does not do on its own:
 
-- **You want a second opinion on the diff.** From the shell you are in,
-  `hagent reviewer` splits right, starts Claude there with that name, and
-  leaves your cursor where it was. Later, from any pane:
-  `herdr agent prompt reviewer "Review the current diff"`.
-
-- **A new ticket needs a clean checkout.** `hworktree feature/login main`
-  creates the worktree and opens it as its own workspace, so the agent for
-  that ticket never trips over the one on the previous branch.
-
-- **You need logs next to what you are doing.** `hsplit down tail -f
-  log/development.log` puts them under the current pane in the same
-  directory. `htab server` gives a long-running process its own tab.
-
-- **A slow install or build is running in another tab.** `docker compose
-  build`, `bundle install`, a deploy script. The sidebar tells you whether it
-  is still going without switching to check, and tells you the moment it is
-  not.
-
-- **An agent should wait for your build.** Because the build is reported like
-  an agent, another pane can block on it:
-  `herdr agent wait make --until done` and then continue with the next step.
+- **A plain shell command in the sidebar.** Herdr tracks agents. A pane running
+  your test suite shows as unknown until something inside the shell reports
+  it. The plugin reports it, so the test run gets the same working and done
+  lifecycle as an agent, and the toast when it finishes.
+- **Reloading Oh My Zsh in every idle pane.** Nothing else does this. It is
+  the one feature that only makes sense if you use both tools.
 
 ## What it will not do
 
