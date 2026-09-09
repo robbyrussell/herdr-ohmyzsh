@@ -3,6 +3,15 @@
 [![CI](https://github.com/robbyrussell/herdr-ohmyzsh/actions/workflows/ci.yml/badge.svg)](https://github.com/robbyrussell/herdr-ohmyzsh/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/robbyrussell/herdr-ohmyzsh)](LICENSE)
 
+<a href="https://commitgoods.com/collections/oh-my-zsh?utm_source=github">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.shopify.com/s/files/1/0101/8752/files/commitgoods-badge-stacked-navy-dark.svg">
+    <img src="https://cdn.shopify.com/s/files/1/0101/8752/files/commitgoods-badge-stacked-navy.svg" height="28" alt="Official merch on commitgoods.com">
+  </picture>
+</a>
+
+---
+
 An experiment. I created [Oh My Zsh](https://ohmyz.sh), and I am still wrapping
 my head around [Herdr](https://herdr.dev). I have twenty years of shortcut
 habits in my zsh terminals, and I wanted them to carry over into a workspace
