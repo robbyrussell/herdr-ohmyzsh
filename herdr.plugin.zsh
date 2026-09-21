@@ -52,6 +52,7 @@ autoload -Uz add-zsh-hook
 : ${HERDR_OMZ_NOTIFY:=true}            # notify when a slow command finishes
 : ${HERDR_OMZ_NOTIFY_FOCUSED:=false}   # notify even when this pane is focused
 : ${HERDR_OMZ_DEFAULT_AGENT:=claude}   # agent kind used by hagent
+: ${HERDR_OMZ_IDLE_TIMEOUT:=30}        # seconds before a finished command's idle badge auto-releases
 
 # Commands that are never reported: agents Herdr already tracks on its own,
 # and interactive programs where "finished" carries no information.
@@ -68,6 +69,7 @@ typeset -g  _herdr_omz_label=
 typeset -gF _herdr_omz_start=0
 typeset -gi _herdr_omz_watcher=0
 typeset -gi _herdr_omz_registered=0
+typeset -g  _herdr_omz_genfile="${TMPDIR:-/tmp}/herdr-omz-release-${HERDR_PANE_ID}"
 
 # Herdr drops a report whose --seq is not above the last one it saw for this
 # pane and source, and that memory outlives the shell. A clock in microseconds
@@ -131,6 +133,9 @@ function _herdr_omz_kill_watcher {
 
 function _herdr_omz_release {
   (( _herdr_omz_registered )) || return 0
+  # Invalidates any pending idle-timeout job scheduled by _herdr_omz_precmd,
+  # whether we got here from the next preexec or from a fired timeout itself.
+  : >| "$_herdr_omz_genfile" 2>/dev/null
   local REPLY
   _herdr_omz_seq
   _herdr_omz_call pane release-agent "$HERDR_PANE_ID" \
@@ -199,6 +204,29 @@ function _herdr_omz_precmd {
       --source ohmyzsh --agent "$label" --state idle \
       --message "$cmd ($summary)" --seq $REPLY
     _herdr_omz_registered=1
+
+    # Auto-release the idle badge if no new command starts within
+    # HERDR_OMZ_IDLE_TIMEOUT seconds, so a finished command does not linger
+    # in the sidebar forever once the pane sits idle. The genfile holds this
+    # report's own seq; if _herdr_omz_release ran in the meantime (a new
+    # preexec, or an earlier timeout already firing), the file no longer
+    # matches and this job is a no-op.
+    if (( HERDR_OMZ_IDLE_TIMEOUT > 0 )); then
+      local gen=$REPLY genfile=$_herdr_omz_genfile pane=$HERDR_PANE_ID
+      local agentlabel=$label bin=$_herdr_omz_bin
+      print -r -- "$gen" >| "$genfile" 2>/dev/null
+      (
+        zmodload zsh/zselect zsh/datetime 2>/dev/null
+        zselect -t $(( HERDR_OMZ_IDLE_TIMEOUT * 100 ))
+        local current
+        current=$(<"$genfile" 2>/dev/null)
+        [[ "$current" == "$gen" ]] || exit 0
+        local -F now=$EPOCHREALTIME
+        local -i seqv=$(( now * 1000000 ))
+        "$bin" pane release-agent "$pane" \
+          --source ohmyzsh --agent "$agentlabel" --seq $seqv
+      ) >/dev/null 2>&1 &!
+    fi
   fi
 
   if [[ "$HERDR_OMZ_NOTIFY" == true ]]; then

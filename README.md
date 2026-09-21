@@ -103,6 +103,7 @@ All optional. Set them in `~/.zshrc` before Oh My Zsh loads.
 | `HERDR_OMZ_NOTIFY` | `true` | Toast when a slow command finishes |
 | `HERDR_OMZ_NOTIFY_FOCUSED` | `false` | Toast even when the pane is focused |
 | `HERDR_OMZ_DEFAULT_AGENT` | `claude` | Agent kind used by `hagent` |
+| `HERDR_OMZ_IDLE_TIMEOUT` | `30` | Seconds before a finished command's idle badge auto-releases from the sidebar if the pane stays idle. `0` disables auto-release |
 | `HERDR_OMZ_IGNORE` | agents, editors, ssh | Programs never reported. Extend with `HERDR_OMZ_IGNORE+=(bundle)` after Oh My Zsh loads |
 
 Keybinding for the reload action, in `~/.config/herdr/config.toml`:
