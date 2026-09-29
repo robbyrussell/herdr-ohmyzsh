@@ -67,6 +67,14 @@ HERDR_OMZ_IGNORE="bundle" run_case '
 ' >/dev/null
 check "user-supplied ignore list is honoured" "" "$(mock_log)"
 
+run_case '
+  _herdr_omz_preexec "exec '\''claude'\''" "exec '\''claude'\''"
+  _herdr_omz_preexec "exec '\''claude'\'' --resume" "exec '\''claude'\'' --resume"
+  sleep 0.3
+  true; _herdr_omz_precmd
+' >/dev/null
+check "quoted programs match the ignore list" "" "$(mock_log)"
+
 # --- wrappers, env assignments and paths are skipped when picking the label ---
 run_case '
   _herdr_omz_preexec "sudo -E RAILS_ENV=test ./bin/rails test" "sudo -E RAILS_ENV=test ./bin/rails test"
@@ -74,6 +82,13 @@ run_case '
   true; _herdr_omz_precmd
 ' >/dev/null
 check_contains "label is the real program name" '--agent rails --state working' "$(mock_log)"
+
+run_case '
+  _herdr_omz_preexec "\"/opt/my tools/make\" test" "\"/opt/my tools/make\" test"
+  _wait_log -- "--state working"
+  true; _herdr_omz_precmd
+' >/dev/null
+check_contains "quotes are stripped before picking the label" '--agent make --state working' "$(mock_log)"
 
 run_case '
   _herdr_omz_preexec "My_Weird.Tool@2 run" "My_Weird.Tool@2 run"

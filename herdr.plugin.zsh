@@ -91,6 +91,7 @@ function _herdr_omz_program {
   local w
   words=(${(z)1})
   for w in $words; do
+    w="${(Q)w}"
     case "$w" in
       *=*) continue ;;
       sudo|doas|command|builtin|exec|nohup|time|nice|env|caffeinate) continue ;;
